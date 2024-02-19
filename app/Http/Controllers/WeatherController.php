@@ -8,39 +8,24 @@ use Illuminate\Http\Request;
 
 class WeatherController extends Controller
 {
-    public function  index()
+  public function get(Request $req)
     {
-        return view('home');
-    }
+        $query = $req->input('city');
+        $key = env('WEATHER_KEY');
+        $url = env('WEATHER_URL');
 
-    public function get(Request $req)
-    {
-        if (!$req->has('city')) {
-            return redirect()->route('home');
-        }
+        $response = Http::get("$url/forecast.json?key=$key&q=$query&days=7&lang=es&alerts=no");
+        $data = $response->json();
+        $statusCode = $response->status();
 
         $req->validate([
             'city' => 'required|min:3'
         ]);
 
-        $query = $req->input('city');
-        $key = env('WEATHER_KEY');
-        $response = Http::get("https://api.weatherapi.com/v1/forecast.json?key=$key&q=$query&days=7&lang=es&aqi=no&alerts=no");
-        $data = $response->json();
-        $color = '';
-        $background = '';
-
-        if ($data['current']['is_day']) {
-            $color = 'dark';
-            $background = 'white';
-        } else {
-            $color = 'white';
-            $background = 'dark';
-        }
         if (isset($data['error'])) {
-            echo ('Ingresa una ciudad válida');
+            return response()->json(['error', $data['error']['message']], $statusCode);
         } else {
-            return view('weather', compact('data', 'color', 'background'));
+            return response()->json(['weather', $data], $statusCode);
         }
     }
 }
