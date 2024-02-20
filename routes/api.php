@@ -18,4 +18,9 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/weather', [WeatherController::class, 'get']);
+Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/logout', [UserController::class, 'logout']);
+});
